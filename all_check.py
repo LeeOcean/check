@@ -25,7 +25,7 @@ def login_by_passwd(server_host, server_port, username, password):
     with open('check.log', 'a', encoding="utf-8") as file_log:
         file_log.write('Connect host: ' + server_host + ' success' + '\n')
     paramiko.util.log_to_file('syslogin.log')
-    server_target = {}
+    server_target = []
     # 主机名
     shell_command_hostname = "hostname | awk '{print $1}'"
     # 逻辑CPU数
@@ -49,23 +49,14 @@ def login_by_passwd(server_host, server_port, username, password):
     stdin_load_15, stdout_load_15, stderr_load_15 = ssh_client.exec_command(shell_command_load_15)
     stdin_disk, stdout_disk, stderr_disk = ssh_client.exec_command(shell_command_disk)
 
-    stdout_info_hostname = stdout_hostname.read().decode('utf8')
-    stdout_info_cpu_total = stdout_cpu_total.read().decode('utf8')
-    # 取整，四舍五入
-    # stdout_info_mem_total = decimal.Decimal(int(stdout_mem_total.read().decode('utf8')).quantize(decimal.Decimal('0')))
-    stdout_info_mem_total = stdout_mem_total.read().decode('utf8')
-    stdout_info_mem_free = stdout_mem_free.read().decode('utf8')
-    stdout_info_mem_use = stdout_mem_use.read().decode('utf8')
-    stdout_info_load_15 = stdout_load_15.read().decode('utf8')
-    stdout_info_disk = stdout_disk.read().decode('utf8').replace('\n', ',').split(',')
+    server_target.append(server_host)
+    server_target.append(stdout_hostname.read().decode('utf8'))
+    server_target.append(stdout_cpu_total.read().decode('utf8'))
+    server_target.append(stdout_mem_total.read().decode('utf8'))
+    server_target.append(stdout_mem_free.read().decode('utf8'))
+    server_target.append(stdout_mem_use.read().decode('utf8'))
+    server_target.append(stdout_load_15.read().decode('utf8'))
 
-    server_target['IP'] = server_host
-    server_target['主机名'] = stdout_info_hostname
-    server_target['CPU核数'] = stdout_info_cpu_total
-    server_target['总内存'] = stdout_info_mem_total
-    server_target['剩余内存'] = stdout_info_mem_free
-    server_target['使用内存'] = stdout_info_mem_use
-    server_target['15分钟负载'] = stdout_info_load_15
 
     # 写入xlsx
     title = ['IP', '主机名', 'CPU核数', '总内存', '剩余内存', '使用内存', '15分钟负载', '磁盘挂载目录', '磁盘容量', '磁盘使用大小',
@@ -103,16 +94,6 @@ def login_by_passwd(server_host, server_port, username, password):
     for num in range(len(server_targets)):
         new_worksheet.write(rows, num, server_targets[num])
         new_workbook.save('check.xls')
-
-    # new_worksheet.write(rows, 0, server_target['IP'])
-    # new_worksheet.write(rows, 1, server_target['主机名'])
-    # new_worksheet.write(rows, 2, server_target['CPU核数'])
-    # new_worksheet.write(rows, 3, server_target['总内存'])
-    # new_worksheet.write(rows, 4, server_target['剩余内存'])
-    # new_worksheet.write(rows, 5, server_target['使用内存'])
-    # new_worksheet.write(rows, 6, server_target['15分钟负载'])
-
-    # new_workbook.save('check.xls')
 
     # 关闭文件和ssh连接
     ssh_client.close()
