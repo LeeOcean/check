@@ -68,7 +68,7 @@ def login_by_passwd(server_host, server_port, username, password):
     server_target['15分钟负载'] = stdout_info_load_15
 
     # 写入xlsx
-    title = ['IP', '主机名', 'CPU核数', '总内存', '剩余内存', '15分钟负载', '磁盘挂载目录', '磁盘容量', '磁盘使用大小',
+    title = ['IP', '主机名', 'CPU核数', '总内存', '剩余内存', '使用内存', '15分钟负载', '磁盘挂载目录', '磁盘容量', '磁盘使用大小',
              '磁盘可用大小', '磁盘使用率', ]
     if not os.path.exists('check.xls'):
         # 创建一个workbook 设置编码
@@ -98,16 +98,21 @@ def login_by_passwd(server_host, server_port, username, password):
     new_workbook = copy(read_workbook)
     # 获取新表的sheet名
     new_worksheet = new_workbook.get_sheet(0)
+    server_targets = list(server_target.values())
+    # print(server_targets)
+    for num in range(len(server_targets)):
+        new_worksheet.write(rows, num, server_targets[num])
+        new_workbook.save('check.xls')
 
-    new_worksheet.write(rows, 0, server_target['IP'])
-    new_worksheet.write(rows, 1, server_target['主机名'])
-    new_worksheet.write(rows, 2, server_target['CPU核数'])
-    new_worksheet.write(rows, 3, server_target['总内存'])
-    new_worksheet.write(rows, 4, server_target['剩余内存'])
-    new_worksheet.write(rows, 5, server_target['使用内存'])
-    new_worksheet.write(rows, 6, server_target['15分钟负载'])
+    # new_worksheet.write(rows, 0, server_target['IP'])
+    # new_worksheet.write(rows, 1, server_target['主机名'])
+    # new_worksheet.write(rows, 2, server_target['CPU核数'])
+    # new_worksheet.write(rows, 3, server_target['总内存'])
+    # new_worksheet.write(rows, 4, server_target['剩余内存'])
+    # new_worksheet.write(rows, 5, server_target['使用内存'])
+    # new_worksheet.write(rows, 6, server_target['15分钟负载'])
 
-    new_workbook.save('check.xls')
+    # new_workbook.save('check.xls')
 
     # 关闭文件和ssh连接
     ssh_client.close()
