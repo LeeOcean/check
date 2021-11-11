@@ -89,10 +89,9 @@ def login_by_passwd(server_host, server_port, username, password):
     new_workbook = copy(read_workbook)
     # 获取新表的sheet名
     new_worksheet = new_workbook.get_sheet(0)
-    server_targets = list(server_target.values())
-    # print(server_targets)
-    for num in range(len(server_targets)):
-        new_worksheet.write(rows, num, server_targets[num])
+
+    for num in range(len(server_target)):
+        new_worksheet.write(rows, num, server_target[num])
         new_workbook.save('check.xls')
 
     # 关闭文件和ssh连接
