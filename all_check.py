@@ -49,6 +49,10 @@ def login_by_passwd(server_host, server_port, username, password):
     stdin_load_15, stdout_load_15, stderr_load_15 = ssh_client.exec_command(shell_command_load_15)
     stdin_disk, stdout_disk, stderr_disk = ssh_client.exec_command(shell_command_disk)
 
+    stdout_disk_info = stdout_disk.read().decode('utf8').replace('\n', ',').split(',')
+    stdout_disk_info.pop()
+    stdout_disk_info_list = stdout_disk_info
+    
     server_target.append(server_host)
     server_target.append(stdout_hostname.read().decode('utf8'))
     server_target.append(stdout_cpu_total.read().decode('utf8'))
@@ -56,7 +60,6 @@ def login_by_passwd(server_host, server_port, username, password):
     server_target.append(stdout_mem_free.read().decode('utf8'))
     server_target.append(stdout_mem_use.read().decode('utf8'))
     server_target.append(stdout_load_15.read().decode('utf8'))
-
 
     # 写入xlsx
     title = ['IP', '主机名', 'CPU核数', '总内存', '剩余内存', '使用内存', '15分钟负载', '磁盘挂载目录', '磁盘容量', '磁盘使用大小',
@@ -93,6 +96,30 @@ def login_by_passwd(server_host, server_port, username, password):
     for num in range(len(server_target)):
         new_worksheet.write(rows, num, server_target[num])
         new_workbook.save('check.xls')
+
+
+    while len(stdout_disk_info_list):
+        for disk_list in range(0, 4):
+            stdout_disk_info_tmp = stdout_disk_info_list[disk_list]
+            stdout_disk_info_list.remove(stdout_disk_info_list[disk_list])
+            # 读取Execl
+            read_workbook = xlrd.open_workbook('check.xls', formatting_info=True)
+            # 获取sheet名
+            sheet_name = read_workbook.sheet_by_index(0)
+            # 获取行
+            rows = sheet_name.nrows
+            # 获取列
+            cols = sheet_name.ncols
+            # 复制到新的工作簿
+            new_workbook = copy(read_workbook)
+            # 获取新表的sheet名
+            new_worksheet = new_workbook.get_sheet(0)
+            match_disk = ['/', '/data']
+            if stdout_disk_info_list[0] in match_disk:
+                for num in range(len(stdout_disk_info_tmp)):
+                    new_worksheet.write(rows, num+4, stdout_disk_info_tmp[num])
+                    new_workbook.save('check.xls')
+            
 
     # 关闭文件和ssh连接
     ssh_client.close()
