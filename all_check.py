@@ -51,8 +51,7 @@ def login_by_passwd(server_host, server_port, username, password):
 
     stdout_disk_info = stdout_disk.read().decode('utf8').replace('\n', ',').split(',')
     stdout_disk_info.pop()
-    stdout_disk_info_list = stdout_disk_info
-    
+
     server_target.append(server_host)
     server_target.append(stdout_hostname.read().decode('utf8'))
     server_target.append(stdout_cpu_total.read().decode('utf8'))
@@ -97,29 +96,38 @@ def login_by_passwd(server_host, server_port, username, password):
         new_worksheet.write(rows, num, server_target[num])
         new_workbook.save('check.xls')
 
-
-    while len(stdout_disk_info_list):
-        for disk_list in range(0, 4):
-            stdout_disk_info_tmp = stdout_disk_info_list[disk_list]
-            stdout_disk_info_list.remove(stdout_disk_info_list[disk_list])
-            # 读取Execl
-            read_workbook = xlrd.open_workbook('check.xls', formatting_info=True)
-            # 获取sheet名
-            sheet_name = read_workbook.sheet_by_index(0)
-            # 获取行
-            rows = sheet_name.nrows
-            # 获取列
-            cols = sheet_name.ncols
-            # 复制到新的工作簿
-            new_workbook = copy(read_workbook)
-            # 获取新表的sheet名
-            new_worksheet = new_workbook.get_sheet(0)
-            match_disk = ['/', '/data']
-            if stdout_disk_info_list[0] in match_disk:
-                for num in range(len(stdout_disk_info_tmp)):
-                    new_worksheet.write(rows, num+4, stdout_disk_info_tmp[num])
-                    new_workbook.save('check.xls')
-            
+    while len(stdout_disk_info):
+        match_disk = ['/', '/data']
+        if stdout_disk_info[0] in match_disk:
+            stdout_disk_info_tmp = []
+            disk_list_num = 0
+            for disk_list in range(0, 5):
+                stdout_disk_info_tmp.append(stdout_disk_info[disk_list])
+            while disk_list_num < 5:
+                stdout_disk_info.pop(0)
+                disk_list_num = disk_list_num+1
+                # 读取Execl
+                read_workbook = xlrd.open_workbook('check.xls', formatting_info=True)
+                # 获取sheet名
+                sheet_name = read_workbook.sheet_by_index(0)
+                # 获取列
+                cols = sheet_name.ncols
+                # 复制到新的工作簿
+                new_workbook = copy(read_workbook)
+                # 获取新表的sheet名
+                new_worksheet = new_workbook.get_sheet(0)
+                if stdout_disk_info_tmp[0] in '/':
+                    for num in range(len(stdout_disk_info_tmp)):
+                        new_worksheet.write(rows, num+7, stdout_disk_info_tmp[num])
+                        new_workbook.save('check.xls')
+                elif stdout_disk_info_tmp[0] in '/data':
+                    for num in range(len(stdout_disk_info_tmp)):
+                        new_worksheet.write(rows, num+12, stdout_disk_info_tmp[num])
+                        new_workbook.save('check.xls')
+                else:
+                    for num in range(len(stdout_disk_info_tmp)):
+                        new_worksheet.write(rows, num+17, stdout_disk_info_tmp[num])
+                        new_workbook.save('check.xls')
 
     # 关闭文件和ssh连接
     ssh_client.close()
